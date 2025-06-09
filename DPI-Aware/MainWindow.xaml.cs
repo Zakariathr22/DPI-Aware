@@ -1,31 +1,83 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using WinRT.Interop;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+namespace DPI_Aware;
 
-namespace DPI_Aware
+public sealed partial class MainWindow : Window, INotifyPropertyChanged
 {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    public sealed partial class MainWindow : Window
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private int _windowWidth;
+    public int WindowWidth
     {
-        public MainWindow()
+        get => _windowWidth;
+        set
         {
-            InitializeComponent();
+            if (_windowWidth != value)
+            {
+                _windowWidth = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WindowWidth)));
+            }
         }
     }
+
+    private int _windowHeight;
+    public int WindowHeight
+    {
+        get => _windowHeight;
+        set
+        {
+            if (_windowHeight != value)
+            {
+                _windowHeight = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WindowHeight)));
+            }
+        }
+    }
+
+    public MainWindow()
+    {
+        InitializeComponent();
+
+        IntPtr hWnd = WindowNative.GetWindowHandle(this);
+        uint dpi = GetDpiForWindow(hWnd);
+        double scaleFactor = dpi / 96.0;
+
+        int minWidthPx = (int)Math.Round(500 * scaleFactor);
+        int minHeightPx = (int)Math.Round(500 * scaleFactor);
+        int maxWidthPx = (int)Math.Round(1000 * scaleFactor);
+        int maxHeightPx = (int)Math.Round(1000 * scaleFactor);
+
+        AppWindow.SetIcon("Assets/Tiles/GalleryIcon.ico");
+        AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
+
+        OverlappedPresenter presenter = OverlappedPresenter.Create();
+        presenter.PreferredMinimumWidth = minWidthPx;
+        presenter.PreferredMinimumHeight = minHeightPx;
+        presenter.PreferredMaximumWidth = maxWidthPx;
+        presenter.PreferredMaximumHeight = maxHeightPx;
+        presenter.IsMaximizable = false;
+
+        AppWindow.SetPresenter(presenter);
+
+        UpdateSize(AppWindow.Size);
+
+        SizeChanged += (s, e) =>
+        {
+            UpdateSize(AppWindow.Size);
+        };
+    }
+
+    private void UpdateSize(Windows.Graphics.SizeInt32 size)
+    {
+        WindowWidth = size.Width;
+        WindowHeight = size.Height;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr hWnd);
 }
