@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DPI-Aware (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "DPI-Aware (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
