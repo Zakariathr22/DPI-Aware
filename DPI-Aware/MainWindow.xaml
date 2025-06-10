@@ -14,7 +14,7 @@
     </Window.SystemBackdrop>
 
     <StackPanel Orientation="Vertical" Margin="12">
-        <TextBlock Text="Window Size (DIPs):" FontWeight="Bold"/>
+        <TextBlock Text="Window Size:" FontWeight="Bold"/>
         <TextBlock Text="{x:Bind WindowWidth, Mode=OneWay}"/>
         <TextBlock Text="{x:Bind WindowHeight, Mode=OneWay}"/>
     </StackPanel>
